@@ -28,8 +28,15 @@ class Catalog(Base):
 
     categories = relationship("ProductCategory", back_populates="catalog", cascade="all, delete-orphan")
 
+    is_available = Column(Boolean, default=False, server_default='false', 
+                         nullable=False, index=True)
+    
+    def update_availability(self):
+        self.is_available = any(c.is_available for c in self.categories)
+    
     def __repr__(self):
         return f"<Catalog(id={self.id}, name='{self.name}')>"
+
 
 class ProductCategory(Base):
     __tablename__ = "product_categories"
@@ -45,8 +52,19 @@ class ProductCategory(Base):
     catalog = relationship("Catalog", back_populates="categories")
     products = relationship("Product", back_populates="category", cascade="all, delete-orphan")
 
+    is_available = Column(Boolean, default=False, server_default='false', 
+                          nullable=False, index=True)
+    
+    def update_availability(self):
+        new_status = any(p.is_available for p in self.products)
+        if self.is_available != new_status: 
+            self.is_available = new_status
+            if self.catalog:
+                self.catalog.update_availability()
+
     def __repr__(self):
         return f"<ProductCategory(id={self.id}, name='{self.name}')>"
+
 
 class Product(Base):
     __tablename__ = "products"
@@ -60,6 +78,20 @@ class Product(Base):
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
     category = relationship("ProductCategory", back_populates="products")
+
+    is_available = Column(Boolean, default=True, server_default='true', 
+                         nullable=False, index=True)
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.update_availability()
+
+    def update_availability(self):
+        new_status = self.quantity > 0
+        if self.is_available != new_status:
+            self.is_available = new_status
+            if self.category:
+                self.category.update_availability()
 
     def __repr__(self):
         return f"<Product(id={self.id}, name='{self.name}', price={self.price})>"

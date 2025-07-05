@@ -1,7 +1,6 @@
 from aiogram import Dispatcher, F
 from aiogram.filters import Command, CommandStart, CommandObject, BaseFilter
 from aiogram.types import Message, CallbackQuery, TelegramObject
-from aiogram.types import InlineKeyboardMarkup
 
 from keyboards.start_keyboard import start_admin_keyboard
 from keyboards.admin_update_catalog import work_with_catalog_keyboard
