@@ -19,4 +19,12 @@ work_with_catalog_buttons = [
     ]
 ]
 
+
+back_to_catalog_button = [
+    [
+        InlineKeyboardButton(text="Назад", callback_data="back_to_catalog")
+    ]
+]
+
 work_with_catalog_keyboard = InlineKeyboardMarkup(inline_keyboard=work_with_catalog_buttons)
+back_to_catalog_keyboard = InlineKeyboardMarkup(inline_keyboard=back_to_catalog_button)

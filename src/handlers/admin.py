@@ -3,7 +3,7 @@ from aiogram.filters import Command, CommandStart, CommandObject, BaseFilter
 from aiogram.types import Message, CallbackQuery, TelegramObject
 
 from keyboards.start_keyboard import start_admin_keyboard
-from keyboards.admin_update_catalog import work_with_catalog_keyboard
+from keyboards.admin_update_catalog import work_with_catalog_keyboard, back_to_catalog_keyboard
 
 admin_ids = [6376753355]
 
@@ -28,8 +28,8 @@ async def work_with_catalog(mes: Message):
 
 async def add_new_catalog(query: CallbackQuery):
     await query.message.edit_text(
-        text="Заглушка"
-        # reply_markup=  # должна быть клавиатура
+        text="Напишите название нового каталога",
+        reply_markup=back_to_catalog_keyboard
     )
 
 
