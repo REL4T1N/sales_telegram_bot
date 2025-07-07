@@ -199,12 +199,12 @@ async def enter_price(mes: Message, state: FSMContext):
         )
 
     text = (
+        f"Товар успешно добавлен!\n\n"
         f"Каталог: {names['catalog_name']}\n"
         f"Категория: {names['category_name']}\n"
         f"Размер одной: {pretty_num(data['size'])} {names['unit_name']}\n"
         f"Количество: {pretty_num(data['quantity'])}\n"
         f"Цена: {pretty_num(data['price'])}\n"
-        "Добавить этот товар?"
     )
 
     kb = yes_or_cancel_keyboard
