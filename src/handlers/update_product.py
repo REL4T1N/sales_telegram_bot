@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram import Dispatcher, F
 from aiogram.types import Message, CallbackQuery, TelegramObject
 from aiogram.fsm.context import FSMContext
@@ -60,11 +62,11 @@ from keyboards.admin_update_catalog import work_with_catalog_keyboard
 async def choose_catalog_to_step_or_to_rename(query: CallbackQuery, state: FSMContext):
     buttons = [
         [
-            InlineKeyboardButton(text="Не менять имени каталога", callback_data="show_catalogs_to_next_step"),
-            InlineKeyboardButton(text="Изменить имя каталога", callback_data="show_catalogs_to_rename")
+            InlineKeyboardButton(text="Не менять имени каталога", callback_data="show_catalogs_list"),
+            InlineKeyboardButton(text="Изменить имя каталога", callback_data="show_catalogs_list_to_rename")
         ],
         [
-            InlineKeyboardButton(text="Назад(ПОКА В РАЗРАБОТКЕ)", callback_data="q")
+            InlineKeyboardButton(text="Назад", callback_data="back_to_main_menu")
         ]
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -77,20 +79,23 @@ async def choose_catalog_to_step_or_to_rename(query: CallbackQuery, state: FSMCo
 async def show_catalogs_for_choose_action(query: CallbackQuery, state: FSMContext):
     data = query.data
 
-    if data == "q":
-        await state.clear()  
-        await query.message.answer(
-            text="Выберите действие:",
-            reply_markup=work_with_catalog_keyboard
-        )
-        await query.answer()
-        return
+    if data == "back_to_main_menu":
+        await state.set_state(UpdateProductStates.back_to_main_menu)
+        await back_to_main_menu(query, state)
+        return 
+        # await state.clear()  
+        # await query.message.answer(
+        #     text="Выберите действие:",
+        #     reply_markup=work_with_catalog_keyboard
+        # )
+        # await query.answer()
+        # return
     
     async for db in get_db():
         catalogs = await get_all(db, Catalog)
-        kb = create_keyboard(catalogs, "Назад", "return_to_choose_action")
+        kb = create_keyboard(catalogs, "Назад", "back_to_choose_catalog_action")
 
-    if data == "show_catalogs_to_next_step":
+    if data == "show_catalogs_list":
         await state.set_state(UpdateProductStates.choose_catalog)
         await query.message.answer(
             text="Выберите каталог:",
@@ -98,7 +103,7 @@ async def show_catalogs_for_choose_action(query: CallbackQuery, state: FSMContex
         )
         await query.answer()
 
-    elif data == "show_catalogs_to_rename":
+    elif data == "show_catalogs_list_to_rename":
         await state.set_state(UpdateProductStates.choose_catalog_to_rename)
         await query.message.answer(
             text="Выберите каталог, название которого будет изменено:",
@@ -110,14 +115,54 @@ async def show_catalogs_for_choose_action(query: CallbackQuery, state: FSMContex
         await query.answer(text="Сосал?")
 
 
+async def back_to_main_menu(query: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await query.message.answer(
+        text="Выберите действие",
+        reply_markup=work_with_catalog_keyboard
+    )
+    await query.answer()
+
+
+async def back_to_catalog_action_menu(query: CallbackQuery, state: FSMContext):
+    await state.clear()
+    buttons = [
+        [
+            InlineKeyboardButton(text="Не менять имени каталога", callback_data="show_catalogs_list"),
+            InlineKeyboardButton(text="Изменить имя каталога", callback_data="show_catalogs_list_to_rename")
+        ],
+        [
+            InlineKeyboardButton(text="Назад", callback_data="back_to_main_menu")
+        ]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    await state.set_state(UpdateProductStates.choose_catalog_action)
+    await query.message.answer(text="Выберите действие:", reply_markup=kb)
+    await query.answer() 
+
+async def back_to_catalogs_list(query: CallbackQuery, state: FSMContext):
+    await state.clear()
+
+    async for db in get_db():
+        catalogs = await get_all(db, Catalog)
+        kb = create_keyboard(catalogs, "Назад", "back_to_choose_catalog_action")
+
+    await state.set_state(UpdateProductStates.choose_catalog)
+    await query.message.answer(
+        text="Выберите каталог:",
+        reply_markup=kb
+    )
+    await query.answer()
+
+
 # Выбор каталога для изменения названия
 async def choose_catalog_to_rename(query: CallbackQuery, state: FSMContext):
     data = query.data
 
-    if data == "return_to_choose_action":
-        await state.set_state(UpdateProductStates.choose_catalog_action)
-        await choose_catalog_to_step_or_to_rename(query, state)
-        await query.answer()
+    if data == "back_to_choose_catalog_action":
+        await state.set_state(UpdateProductStates.back_choose_catalog_action)
+        await back_to_catalog_action_menu(query, state)
         return
     
 
@@ -127,8 +172,6 @@ async def choose_catalog_to_rename(query: CallbackQuery, state: FSMContext):
         await state.set_state(UpdateProductStates.entering_catalog_new_name)
         await query.message.answer(
             text="Введит новое название каталога:",
-            # добавить клаву с кнопкой назад
-            # reply_markup=kb
         )
         await query.answer()
 
@@ -172,12 +215,8 @@ async def confirm_catalog_new_name(query: CallbackQuery, state: FSMContext):
         await query.message.answer(
             text=f"✅ Каталог успешно переименован на <b>{catalog_new_name}</b>!"
         )
-        # задать состояние для выбора категорий
+        await asyncio.sleep(0.3)
         await state.clear()
-        # Переводим обратно к выбору действия с каталогами
-        '''
-        пока костыльно, там получается 2 сообщения отправляются, я бы всё в одном сделал.
-        '''
         await state.set_state(UpdateProductStates.choose_catalog_action)
         await choose_catalog_to_step_or_to_rename(query, state)
         await query.answer(text="Обновлено ✅")
@@ -185,21 +224,207 @@ async def confirm_catalog_new_name(query: CallbackQuery, state: FSMContext):
     elif query_data == "cancel_rename_catalog":
         await state.clear()
         await query.message.answer("Переименование отменено.")
-        # Вернуть к выбору действия или куда надо
+        await asyncio.sleep(0.3)
+
         await state.set_state(UpdateProductStates.choose_catalog_action)
         await choose_catalog_to_step_or_to_rename(query, state)
         await query.answer()
 
+# Переход от выбора каталога к выбору категории -> выбор действия над категориями
+async def road_catalog_to_category(query: CallbackQuery, state: FSMContext):
+    data = query.data
     
+    if data == "back_to_choose_catalog_action":
+        await state.set_state(UpdateProductStates.back_choose_catalog_action)
+        await back_to_catalog_action_menu(query, state)
+        return
+    
+
+    else:
+        catalog_id = int(data)
+        await state.update_data(catalog_id=catalog_id)
+        
+        buttons = [
+            [
+                InlineKeyboardButton(text="Без изменения названия", callback_data="show_categories_list"),
+                InlineKeyboardButton(text="Изменить название", callback_data="show_categories_list_to_rename")
+            ],
+            [
+                InlineKeyboardButton(text="Назад", callback_data="back_to_choose_catalog")
+            ]
+        ]
+        kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+
+        await state.set_state(UpdateProductStates.choose_category_action)
+        await query.message.answer(
+            text="Выберите действие над категориями:",
+            reply_markup=kb
+        )
+        await query.answer()
+    
+
 # Гойда гойда
-# Выбор действия над категорией
+# Разпределение действий над категориями
+async def choose_category_action(query: CallbackQuery, state: FSMContext):
+    data_query = query.data
+
+    if data_query == "back_to_choose_catalog":
+        await state.set_state(UpdateProductStates.back_choose_catalog)
+        await back_to_catalogs_list(query, state)
+        return
+    
+    data = await state.get_data()
+    async for db in get_db():
+        categories = await get_categories_by_catalog(db, data["catalog_id"])
+
+    kb = create_keyboard(categories, "Назад", "return_to_choose_category_action")
+
+    if data_query == "show_categories_list":
+        await state.set_state(UpdateProductStates.choose_category)
+        await query.message.answer(
+            text="Выберите категорию:",
+            reply_markup=kb
+        )
+        await query.answer()
+
+    elif data_query == "show_categories_list_to_rename":
+        await state.set_state(UpdateProductStates.choose_category_to_rename)
+        await query.message.answer(
+            text="Выберите категорию, название которой будет изменено:",
+            reply_markup=kb
+        )
+        await query.answer()
+
+async def back_to_category_action_menu(query: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    catalog_id = data.get("catalog_id")
+    state.clear()
+
+    await state.update_data(catalog_id=catalog_id)
+        
+    buttons = [
+        [
+            InlineKeyboardButton(text="Без изменения названия", callback_data="show_categories_list"),
+            InlineKeyboardButton(text="Изменить название", callback_data="show_categories_list_to_rename")
+        ],
+        [
+            InlineKeyboardButton(text="Назад", callback_data="back_to_choose_catalog")
+        ]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    await state.set_state(UpdateProductStates.choose_category_action)
+    await query.message.answer(
+        text="Выберите действие над категориями:",
+        reply_markup=kb
+    )
+    await query.answer()
 
 
 
+# Выбор категории для изменения названия
+async def choose_category_to_rename(query: CallbackQuery, state: FSMContext):
+    data = query.data
+
+    if data == "return_to_choose_category_action":
+        await state.set_state(UpdateProductStates.back_choose_category_action)
+        await back_to_category_action_menu(query, state)
+        return
+
+    else:
+        category_id = int(data)
+        await state.update_data(category_id=category_id)
+        await state.set_state(UpdateProductStates.entering_category_new_name)
+        await query.message.answer(
+            text="Введите новое название категории:",
+        )
+        await query.answer()
 
 
+# Ввод нового названия категории
+async def enter_category_new_name(mes: Message, state: FSMContext):
+    new_name = mes.text
+    await state.update_data(category_new_name=new_name)
+    data = await state.get_data()
+
+    async for db in get_db():
+        category = await db.get(Category, data["category_id"])
+
+    old_name = category.name if category else "Не найдено"
+
+    buttons = [
+        [
+            InlineKeyboardButton(text="Да, переименовать", callback_data="confirm_rename_category"),
+            InlineKeyboardButton(text="Нет, отменить", callback_data="cancel_rename_category")
+        ]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    await state.set_state(UpdateProductStates.confirming_category_rename)
+    await mes.answer(
+        text=f"Переименовать каталог\n<b>{old_name}</b> → <b>{new_name}</b>?",
+        reply_markup=kb
+    )
+
+# Меню после подтверждения изменения 
+async def show_category_action_menu(query, state):
+    data = await state.get_data()
+    catalog_id = data.get("catalog_id")
+    if not catalog_id:
+        await query.message.answer("catalog_id не найден в состоянии")
+        return
+
+    buttons = [
+        [
+            InlineKeyboardButton(text="Без изменения названия", callback_data="show_categories_list"),
+            InlineKeyboardButton(text="Изменить название", callback_data="show_categories_list_to_rename")
+        ],
+        [
+            InlineKeyboardButton(text="Назад", callback_data="back_to_choose_catalog")
+        ]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    await state.set_state(UpdateProductStates.choose_category_action)
+    await query.message.answer(
+        text="Выберите действие над категориями:",
+        reply_markup=kb
+    )
+    await query.answer()
 
 
+# Подтверждение изменения категории
+async def confirm_category_new_name(query: CallbackQuery, state: FSMContext):
+    data_query = query.data
+    data = await state.get_data()
+
+    if data_query == "confirm_rename_category":
+        category_id = data["category_id"]
+        catagory_name = data["category_new_name"]
+        async for db in get_db():
+            category = await update_object(db, Category, category_id, name=catagory_name)
+        
+        await query.message.answer(
+            text=f"✅ Категория успешно переименована на <b>{catagory_name}</b>!"
+        )
+        await asyncio.sleep(0.3)
+
+        await state.clear()
+        await state.update_data(catalog_id=data["catalog_id"])
+        await state.set_state(UpdateProductStates.choose_category_action)
+        await show_category_action_menu(query, state)
+        await query.answer(text="Обновлено ✅")        
+        
+
+    elif data_query == "cancel_rename_category":
+        await state.clear()
+        await state.update_data(catalog_id=data["catalog_id"])
+        await query.message.answer("Переименование отменено.")
+        await asyncio.sleep(0.3)
+        
+        await state.set_state(UpdateProductStates.choose_category_action)
+        await show_category_action_menu(query, state)
+        await query.answer()
 
 
 
@@ -209,15 +434,29 @@ def register_update_product_handlers(dp: Dispatcher):
     dp.callback_query.register(choose_catalog_to_rename, UpdateProductStates.choose_catalog_to_rename, IsAdmin())
     dp.message.register(enter_catalog_new_name, UpdateProductStates.entering_catalog_new_name, IsAdmin())
     dp.callback_query.register(confirm_catalog_new_name, UpdateProductStates.confirming_catalog_rename, IsAdmin())
+    dp.callback_query.register(road_catalog_to_category, UpdateProductStates.choose_catalog, IsAdmin())
+    dp.callback_query.register(choose_category_action, UpdateProductStates.choose_category_action, IsAdmin())
+    dp.callback_query.register(choose_category_to_rename, UpdateProductStates.choose_category_to_rename, IsAdmin())
+    dp.message.register(enter_category_new_name, UpdateProductStates.entering_category_new_name, IsAdmin())
+    dp.callback_query.register(confirm_category_new_name, UpdateProductStates.confirming_category_rename, IsAdmin())
+    dp.callback_query.register(show_category_action_menu, UpdateProductStates.choose_category_action, IsAdmin())
+    # dp.callback_query.register(back_to_main_menu, UpdateProductStates.back_to_main_menu, IsAdmin())
+    # dp.callback_query.register(back_to_catalog_action_menu, UpdateProductStates.back_choose_catalog_action, IsAdmin())
+    # dp.callback_query.register(back_to_catalogs_list, UpdateProductStates.bac)
 
 
 
 
 
-
-
-
-
+'''
+Не рабочие кнопки назад:
+1)Выбор действия над каталогом -> не изменять имя -> назад
+2)Выбор действия над каталогом -> не изменять имя -> каталог -> назад
+3)Выбор действия над каталогом -> не изменять имя -> каталог -> выбор действия над категорией (не изменять)-> назад
+4)Выбор действия над каталогом -> не изменять имя -> каталог -> выбор действия над категорией (изменить)-> назад
+5)Выбор действия над каталогом -> не изменять имя -> каталог -> выбор действия над категорией (изменить)-> категория -> отсутствие кнопки назад на этапе ввода
+6)Выбор действия над каталогом -> изменить имя -> каталог -> отсутствие кнопки назад на этапе ввода
+'''
 
 
 
