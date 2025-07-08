@@ -14,7 +14,7 @@ start_admin_buttons = [
 
 start_buttons = [
     [
-        KeyboardButton(text="Ката лог"),
+        KeyboardButton(text="Каталог"),
         KeyboardButton(text="Заказы"),
     ],
     [
