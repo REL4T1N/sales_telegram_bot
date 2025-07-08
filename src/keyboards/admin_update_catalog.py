@@ -9,10 +9,10 @@ work_with_catalog_buttons = [
         InlineKeyboardButton(text="Добавить товар", callback_data="create_category")
     ],
     [
-        InlineKeyboardButton(text="Обновить категорию", callback_data="update_category")
+        InlineKeyboardButton(text="Обновить товар", callback_data="update_category")
     ],
     [
-        InlineKeyboardButton(text="Удалеть категорию", callback_data="delete_category")
+        InlineKeyboardButton(text="Удалеть товар", callback_data="delete_category")
     ],
     [
         InlineKeyboardButton(text="Назад", callback_data="start_keyboard")

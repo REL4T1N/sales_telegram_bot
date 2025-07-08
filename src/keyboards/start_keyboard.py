@@ -4,7 +4,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 start_admin_buttons = [
     [
         KeyboardButton(text="Каталог"),
-        KeyboardButton(text="Обновить каталог")
+        KeyboardButton(text="Обновить данные товаров")
     ],
     [
         KeyboardButton(text="О нас"),
