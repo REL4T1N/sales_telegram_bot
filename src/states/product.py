@@ -15,12 +15,19 @@ class AddProductStates(StatesGroup):
 
 
 class UpdateProductStates(StatesGroup):
+    back_to_main_menu = State()
     # 1. Для каталога
     choose_catalog_action = State()
     choose_catalog = State()
     choose_catalog_to_rename = State()
     entering_catalog_new_name = State()
     confirming_catalog_rename = State()
+    # 1.1 Кнопки назад для каталога
+    back_choose_catalog_action = State()
+    back_choose_catalog = State()
+    back_choose_catalog_to_rename = State()
+    back_entering_catalog_new_name = State()
+    back_confirming_catalog_rename = State()
 
     # 2. Для категории
     choose_category_action = State()
@@ -28,6 +35,14 @@ class UpdateProductStates(StatesGroup):
     choose_category_to_rename = State()
     entering_category_new_name = State()
     confirming_category_rename = State()
+    # 2.1 Кнопки назад для категории
+    back_choose_category_action = State()
+    back_choose_category = State()
+    back_choose_category_to_rename = State()
+    back_entering_category_new_name = State()
+    back_confirming_category_rename = State()
+
+    # 3. Чёта с товарами делать, подумать нужно
 
 
 # class UpdateProductStates(StatesGroup):
