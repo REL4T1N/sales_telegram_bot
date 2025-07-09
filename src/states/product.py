@@ -43,6 +43,8 @@ class UpdateProductStates(StatesGroup):
     back_confirming_category_rename = State()
 
     # 3. Чёта с товарами делать, подумать нужно
+    choose_product_parametr_to_edit = State()
+    entering_product_parametr_to_edit = State()
 
 
 # class UpdateProductStates(StatesGroup):
