@@ -5,7 +5,7 @@ from bot.dispatcher import dp
 
 from handlers.admin import admin_handlers
 from handlers.commom import common_handlers
-from handlers.update_product import register_update_product_handlers
+from handlers.update_catalog_and_category import register_update_product_handlers
 
 
 admin_handlers(dp)
