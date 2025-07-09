@@ -428,7 +428,7 @@ async def confirm_category_new_name(query: CallbackQuery, state: FSMContext):
 
 
 
-def register_update_product_handlers(dp: Dispatcher):
+def register_update_catalog_and_category_handlers(dp: Dispatcher):
     dp.callback_query.register(choose_catalog_to_step_or_to_rename, F.data == "update_category", IsAdmin())
     dp.callback_query.register(show_catalogs_for_choose_action, UpdateProductStates.choose_catalog_action, IsAdmin())
     dp.callback_query.register(choose_catalog_to_rename, UpdateProductStates.choose_catalog_to_rename, IsAdmin())
