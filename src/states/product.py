@@ -45,6 +45,12 @@ class UpdateProductStates(StatesGroup):
     # 3. Чёта с товарами делать, подумать нужно
     choose_product_parametr_to_edit = State()
     entering_product_parametr_to_edit = State()
+    entering_new_size = State()
+    choose_new_unit = State()
+    entering_new_quantity = State()
+    entering_new_price = State()
+    confirming_product_edit = State()
+    choose_param_edit_action = State()
 
 
 # class UpdateProductStates(StatesGroup):
