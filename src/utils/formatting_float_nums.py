@@ -13,3 +13,11 @@ def pretty_num(val):
         return f"{as_float:.2f}".rstrip('0').rstrip('.')
     except Exception:
         return str(val)
+    
+def pretty_edit(old, new, suffix=""):
+    old_str = pretty_num(old)
+    if new is not None:
+        new_str = pretty_num(new)
+        return f"<i>{old_str}</i>{suffix} → <i>{new_str}</i>{suffix}"
+    else:
+        return f"<i>{old_str}</i>{suffix}"
