@@ -160,11 +160,34 @@ async def choose_product_paran_to_edit(query: CallbackQuery, state: FSMContext):
 
 
 async def enter_product_parametr_to_edit(query: CallbackQuery, state: FSMContext):    
+    data = await state.get_data()
     if query.data == "back_to_choose_product_to_edit":
         # заглушка кнопки назад
         pass
-    elif query.data == "end_param_edit":
-        # заглушка для вызова меню подтверждения
+
+    elif query.data == "confirm_param_edit":
+        fields_to_update = {}
+        for param in ("size", "quantity", "price", "unit_id"):
+            new_key = f"new_{param}"
+            if new_key in data and data[new_key] is not None:
+                fields_to_update[param] = data[new_key]
+        
+        if fields_to_update:
+            async for db in get_db():
+                product = await update_object(db, Product, obj_id=data["product_id"], **fields_to_update)
+            await query.message.answer("✅ Товар успешно обновлён!")
+            await asyncio.sleep(0.3)
+        else:
+            await query.message.answer("Нет новых изменений для сохранения.")
+
+        await state.clear()
+        await state.update_data(catalog_id=data["catalog_id"])
+        await state.update_data(category_id=data["category_id"])
+        await send_products_table(query, state, int(data["catalog_id"]), int(data["category_id"]))
+        await query.answer()
+
+    elif query.data == "cancel_param_edit":
+        # заглушка для отмены изменений
         pass
 
     if query.data == "size_one_product_edit":
@@ -336,7 +359,8 @@ async def new_show_product(query: CallbackQuery, state: FSMContext):
             InlineKeyboardButton(text="Цена", callback_data="price_product_edit")
         ],
         [
-            InlineKeyboardButton(text="Закончить изменения", callback_data="end_param_edit")
+            InlineKeyboardButton(text="Подтвердить изменения", callback_data="confirm_param_edit"),
+            InlineKeyboardButton(text="Отменить изменения", callback_data="cancel_param_edit")
         ]
     ]
 
@@ -477,7 +501,6 @@ async def confirm_params_edit(query: CallbackQuery, state: FSMContext):
         await state.update_data(category_id=data["category_id"])
         await send_products_table(query, state, int(data["catalog_id"]), int(data["category_id"]))
         await query.answer()
-        # сделать перенаправление на меню, где таблица в формате <code></code>
 
     elif query.data == "cancel_param_edit":
         await query.message.answer("Обновление отменено!")
