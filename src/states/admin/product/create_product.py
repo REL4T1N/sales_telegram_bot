@@ -13,6 +13,7 @@ class CreateProduct(StatesGroup):
     entering_catalog_name = State()
     confirming_catalog_name = State()
 
-    showing_categories = State()
-
+    choosing_category = State()
+    entering_category_name = State()
+    confirming_category_name = State()
     pass
