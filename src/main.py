@@ -3,16 +3,11 @@ import asyncio
 from bot.bot import bot
 from bot.dispatcher import dp
 
-from handlers.admin import admin_handlers
-from handlers.commom import common_handlers
-from handlers.update_catalog_and_category import register_update_catalog_and_category_handlers
-from handlers.update_product import register_update_product_handlers
+from handlers.admin.product.create.select_params import register_product_create_select_params
 
 
-admin_handlers(dp)
-common_handlers(dp)
-register_update_catalog_and_category_handlers(dp)
-register_update_product_handlers(dp)
+register_product_create_select_params(dp)
+
 
 async def main():
     await dp.start_polling(bot)
