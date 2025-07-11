@@ -43,6 +43,8 @@ async def choose_category(query: CallbackQuery, state: FSMContext):
     
     else:
         category_id = int(query.data)
+        await state.update_data(category_id=category_id)
+        await show_units_list(query, state)
         # нажата кнопка с id категории
 
 
@@ -95,6 +97,22 @@ async def confirm_category_name(query: CallbackQuery, state: FSMContext):
 
     else:
         query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
+
+
+async def show_units_list(query: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+
+    async for db in get_db():
+        units = await get_all(db, Unit)
+
+    kb = await create_keyboard(units, "Добавить", "add_new_unit", "back_to_show_categories_list")
+
+    await state.set_state(CreateProduct.choosing_unit)
+    await query.message.edit_text(
+        text="Выберите единицу измерения товара или добавьте новую:",
+        reply_markup=kb
+    )
+    await query.answer()
 
 
 def register_product_create_category(dp: Dispatcher):

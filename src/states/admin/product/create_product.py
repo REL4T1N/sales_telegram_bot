@@ -8,7 +8,6 @@ class CreateProduct(StatesGroup):
         1. Выбрали доступный
     
     '''
-    # пробник
     choosing_catalog = State()
     entering_catalog_name = State()
     confirming_catalog_name = State()
@@ -16,4 +15,7 @@ class CreateProduct(StatesGroup):
     choosing_category = State()
     entering_category_name = State()
     confirming_category_name = State()
-    pass
+
+    choosing_unit = State()
+    entering_new_unit = State()
+    confirming_new_unit = State()
