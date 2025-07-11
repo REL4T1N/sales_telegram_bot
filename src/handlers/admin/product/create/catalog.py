@@ -48,7 +48,7 @@ async def choose_catalog_to_create(query: CallbackQuery, state: FSMContext):
 
         await state.set_state(CreateProduct.entering_catalog_name)
         await query.message.edit_text(
-            text="Введите новое название каталога:",
+            text="Введите название нового каталога:",
             reply_markup=kb
         )
         await query.answer()
@@ -56,6 +56,8 @@ async def choose_catalog_to_create(query: CallbackQuery, state: FSMContext):
     else:
         # была нажата кнопка одного из видов каталогов, т.е. кнопка с id доступного каталога
         catalog_id = int(query.data)
+        await state.update_data(catalog_id=catalog_id)
+        await show_categories_list(query, state)
 
 
 async def enter_new_catalog_name(mes: Message, state: FSMContext):
@@ -70,7 +72,6 @@ async def enter_new_catalog_name(mes: Message, state: FSMContext):
         text=f"Добавить каталог <b>{catalog_name}</b>?",
         reply_markup=kb
     )
-
 
 
 async def back_to_show_catalogs_list(query: CallbackQuery, state: FSMContext):
@@ -107,7 +108,23 @@ async def confirm_catalog_name(query: CallbackQuery, state: FSMContext):
         query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
 
 
-def register_product_create_select_params(dp: Dispatcher):
+async def show_categories_list(query: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+
+    async for db in get_db():
+        categories = await get_categories_by_catalog(db, data["catalog_id"])
+
+    kb = await create_keyboard(categories, "Добавить", "add_new_category", "back_to_show_catalogs_list")
+
+    await state.set_state(CreateProduct.choosing_category)
+    await query.message.edit_text(
+        text="Выберите категорию или добавьте новую:",
+        reply_markup=kb
+    )
+    await query.answer()
+
+
+def register_product_create_catalog(dp: Dispatcher):
     dp.message.register(show_catalogs_list, Command("create_product"), IsAdmin())
     dp.callback_query.register(choose_catalog_to_create, CreateProduct.choosing_catalog, IsAdmin())
     dp.message.register(enter_new_catalog_name, CreateProduct.entering_catalog_name, IsAdmin())
