@@ -3,10 +3,12 @@ import asyncio
 from bot.bot import bot
 from bot.dispatcher import dp
 
-from handlers.admin.product.create.select_params import register_product_create_select_params
+from handlers.admin.product.create.catalog import register_product_create_catalog
+from handlers.admin.product.create.category import register_product_create_category
 
 
-register_product_create_select_params(dp)
+register_product_create_catalog(dp)
+register_product_create_category(dp)
 
 
 async def main():
