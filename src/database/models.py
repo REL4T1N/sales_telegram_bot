@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import (
     Column, Integer, String, Boolean, Numeric, ForeignKey,
-    UniqueConstraint, TIMESTAMP, BigInteger, DateTime, func
+    UniqueConstraint, TIMESTAMP, BigInteger, DateTime, Text, func
 )
 from sqlalchemy.orm import relationship
 from database.database import Base
@@ -59,6 +59,8 @@ class Product(Base):
     quantity = Column(Numeric(10, 2), nullable=False, default=0)
     size = Column(Numeric(10, 2), nullable=False, default=1)  # Новое поле с дефолтом
     price = Column(Numeric(10, 2), nullable=False)
+    image_id = Column(BigInteger, ForeignKey("images.id", ondelete="SET NULL"), nullable=True)  # Используем BigInteger
+    description = Column(Text, nullable=True)  # Поле для описания
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
 
