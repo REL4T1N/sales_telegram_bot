@@ -58,6 +58,7 @@ async def choose_catalog_to_create(query: CallbackQuery, state: FSMContext):
         catalog_id = int(query.data)
         await state.update_data(catalog_id=catalog_id)
         await show_categories_list(query, state)
+        return
 
 
 async def enter_new_catalog_name(mes: Message, state: FSMContext):
@@ -98,11 +99,13 @@ async def confirm_catalog_name(query: CallbackQuery, state: FSMContext):
         await query.answer(text="✅ Каталог успешно добавлен")
         await state.clear()
         await back_to_show_catalogs_list(query, state)
+        return
 
     elif query.data == "cancel_add_catalog":
         await query.answer(text="❌ Добавление каталога отменено")
         await state.clear()
         await back_to_show_catalogs_list(query, state)
+        return
         
     else:
         query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")

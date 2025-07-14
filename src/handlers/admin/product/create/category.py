@@ -26,13 +26,14 @@ from handlers.admin.product.create.catalog import show_categories_list, back_to_
 async def choose_category(query: CallbackQuery, state: FSMContext):
     if query.data == "back_to_show_catalogs_list":
         await back_to_show_catalogs_list(query, state)
+        return
 
-    elif query.data == "add_new_category":
+    kb = await create_back_button("back_to_categories_list")
+
+    if query.data == "add_new_category":
         data = await state.get_data()
         async for db in get_db():
             catalog = await db.get(Catalog, data["catalog_id"])
-
-        kb = await create_back_button("back_to_categories_list")
 
         await state.set_state(CreateProduct.entering_category_name)
         await query.message.edit_text(
@@ -44,7 +45,12 @@ async def choose_category(query: CallbackQuery, state: FSMContext):
     else:
         category_id = int(query.data)
         await state.update_data(category_id=category_id)
-        await show_units_list(query, state)
+        await state.set_state(CreateProduct.entering_size)
+        await query.message.edit_text(
+            text="Введите размер одной единицы товара, <b><i>например,</i></b> <code>1.5</code>",
+            reply_markup=kb
+        )
+        await query.answer()
         # нажата кнопка с id категории
 
 
@@ -55,6 +61,7 @@ async def back_to_categories_list(query: CallbackQuery, state: FSMContext):
         await state.clear()
         await state.update_data(catalog_id=data["catalog_id"])
         await show_categories_list(query, state)
+        return
 
     else:
         query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
@@ -88,20 +95,20 @@ async def confirm_category_name(query: CallbackQuery, state: FSMContext):
         await state.clear()
         await state.update_data(catalog_id=data["catalog_id"])
         await show_categories_list(query, state)
+        return
 
     elif query.data == "cancel_add_category":
         await query.answer(text="❌ Добавление категории отменено")
         await state.clear()
         await state.update_data(catalog_id=data["catalog_id"])
         await show_categories_list(query, state)
+        return
 
     else:
         query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
 
 
 async def show_units_list(query: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-
     async for db in get_db():
         units = await get_all(db, Unit)
 
