@@ -56,7 +56,7 @@ class Product(Base):
     category_id = Column(Integer, ForeignKey("categories.id", ondelete="CASCADE"), nullable=False)
     unit_id = Column(Integer, ForeignKey("units.id"), nullable=False)
     available = Column(Boolean, nullable=False, default=True, server_default="true")
-    quantity = Column(Numeric(10, 2), nullable=False, default=0)
+    count = Column(Numeric(10, 2), nullable=False, default=0)
     size = Column(Numeric(10, 2), nullable=False, default=1)  # Новое поле с дефолтом
     price = Column(Numeric(10, 2), nullable=False)
     image_id = Column(BigInteger, ForeignKey("images.id", ondelete="SET NULL"), nullable=True)  # Используем BigInteger
