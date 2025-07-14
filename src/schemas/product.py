@@ -5,5 +5,5 @@ class ProductCreate(BaseModel):
     unit_id: int
     available: bool = True
     size: float
-    quantity: float
+    count: float
     price: float
