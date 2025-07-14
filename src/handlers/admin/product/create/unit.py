@@ -25,15 +25,28 @@ from handlers.admin.product.create.category import show_units_list, show_categor
 
 
 async def choose_unit(query: CallbackQuery, state: FSMContext):
-    if query.data == "back_to_show_categories_list":
-        await show_categories_list(query, state)
+    if query.data == "back_to_enter_size":
+        data = await state.get_data()
 
-    elif query.data == "add_new_unit":
+        kb = await create_back_button("back_to_categories_list")
 
-        kb = await create_back_button("back_to_units_list")
+        await state.clear()
+        await state.update_data(catalog_id=data["catalog_id"])
+        await state.update_data(category_id=data["category_id"])
+        
+        await state.set_state(CreateProduct.entering_size)
+        await query.message.edit_text(
+            text="Введите размер одной единицы товара, <b><i>например,</i></b> <code>1.5</code>",
+            reply_markup=kb
+        )
+        await query.answer()
+        return 
 
+    kb = await create_back_button("back_to_units_list")
+
+    if query.data == "add_new_unit":
         await state.set_state(CreateProduct.entering_new_unit)
-        await query.message.answer(
+        await query.message.edit_text(
             text="Введите новую единицу измерения:",
             reply_markup=kb
         )
@@ -42,8 +55,73 @@ async def choose_unit(query: CallbackQuery, state: FSMContext):
     else:
         unit_id = int(query.data)
         await state.update_data(unit_id=unit_id)
+        await state.set_state(CreateProduct.entering_count)
+        await query.message.edit_text(
+            text="Введите доступное количество товара, <b><i>например,</i></b> <code>10</code>",
+            reply_markup=kb
+        )
+        await query.answer()
         # Нажата кнопка с id ЕИ
+        
+
+async def back_to_units_list(query: CallbackQuery, state: FSMContext):
+    if query.data == "back_to_units_list":
+
+        data = await state.get_data()
+        await state.clear()
+        await state.update_data(catalog_id=data["catalog_id"])
+        await state.update_data(category_id=data["category_id"])
+        await state.update_data(size=data["size"])
+        await show_units_list(query, state)
+        return
+
+    else:
+        query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
+
+
+async def enter_new_unit(mes: Message, state: FSMContext):
+    unit = mes.text
+    await state.update_data(unit=unit)
+    
+    kb = await confirming_keyboard("✅ Да", "confirm_add_unit", "❌ Нет", "cancel_add_unit")
+
+    await state.set_state(CreateProduct.confirming_new_unit)
+    await mes.answer(
+        text=f"Добавить единицу измерения <b>{unit}</b>?",
+        reply_markup=kb
+    )
+
+
+async def confirm_unit(query: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+
+    if query.data == "confirm_add_unit":
+        async for db in get_db():
+            unit = await create_object(db, Unit, name=data["unit"])
+
+        await query.answer(text="✅ Категория успешно добавлена")
+        await state.clear()
+        await state.update_data(catalog_id=data["catalog_id"])
+        await state.update_data(category_id=data["category_id"])
+        await state.update_data(size=data["size"])
+        await show_units_list(query, state)
+        return
+
+    elif query.data == "cancel_add_unit":
+        await query.answer(text="❌ Добавление категории отменено")
+        await state.clear()
+        await state.update_data(catalog_id=data["catalog_id"])
+        await state.update_data(category_id=data["category_id"])
+        await state.update_data(size=data["size"])
+        await show_units_list(query, state)
+        return
+
+    else:
+        query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
 
 
 def register_product_create_unit(dp: Dispatcher):
     dp.callback_query.register(choose_unit, CreateProduct.choosing_unit, IsAdmin())
+    dp.callback_query.register(back_to_units_list, CreateProduct.entering_new_unit, IsAdmin())
+    dp.message.register(enter_new_unit, CreateProduct.entering_new_unit, IsAdmin())
+    dp.callback_query.register(confirm_unit, CreateProduct.confirming_new_unit, IsAdmin())
