@@ -26,10 +26,4 @@ class CreateProduct(StatesGroup):
 
     entering_price = State()
 
-    adding_desc = State()
-    entering_description = State()
-
-    adding_photo = State()
-    sending_photo = State()
-
     confirming = State()

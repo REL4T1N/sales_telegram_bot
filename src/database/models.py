@@ -57,10 +57,8 @@ class Product(Base):
     unit_id = Column(Integer, ForeignKey("units.id"), nullable=False)
     available = Column(Boolean, nullable=False, default=True, server_default="true")
     count = Column(Numeric(10, 2), nullable=False, default=0)
-    size = Column(Numeric(10, 2), nullable=False, default=1)  # Новое поле с дефолтом
+    size = Column(Numeric(10, 2), nullable=False, default=1)
     price = Column(Numeric(10, 2), nullable=False)
-    image_id = Column(BigInteger, nullable=True)  # Используем BigInteger
-    description = Column(Text, nullable=True)  # Поле для описания
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
 
