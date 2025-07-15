@@ -1,4 +1,4 @@
-from aiogram import Dispatcher
+from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
@@ -16,10 +16,16 @@ from handlers.admin.base import IsAdmin
 
 from keyboards.admin.base import create_keyboard, create_back_button, confirming_keyboard
 
+admin_create_catalog = Router()
+
+admin_create_catalog.message.filter(IsAdmin())
+admin_create_catalog.callback_query.filter(IsAdmin())
+
 '''
 В данный момент нет продуманного меню, отображающего выбор действий, типо добавлять, 
 редактировать и тд, поэтому будет команда для создания "/create_product"
 '''
+@admin_create_catalog.message(Command("create_product"))
 async def show_catalogs_list(mes: Message, state: FSMContext):
     async for db in get_db():
         catalogs = await get_all(db, Catalog)
@@ -33,6 +39,7 @@ async def show_catalogs_list(mes: Message, state: FSMContext):
     )
 
 
+@admin_create_catalog.callback_query(CreateProduct.choosing_catalog)
 async def choose_catalog_to_create(query: CallbackQuery, state: FSMContext):
     if query.data == "back_to_main_product_menu":
         # была нажата кнопка назад для отображения основного меню работы админа над продуктами
@@ -57,6 +64,7 @@ async def choose_catalog_to_create(query: CallbackQuery, state: FSMContext):
         return
 
 
+@admin_create_catalog.message(CreateProduct.entering_catalog_name)
 async def enter_new_catalog_name(mes: Message, state: FSMContext):
     catalog_name = mes.text
     await state.update_data(catalog_name=catalog_name)
@@ -71,6 +79,7 @@ async def enter_new_catalog_name(mes: Message, state: FSMContext):
     )
 
 
+@admin_create_catalog.callback_query(CreateProduct.entering_catalog_name)
 async def back_to_show_catalogs_list(query: CallbackQuery, state: FSMContext):
     async for db in get_db():
         catalogs = await get_all(db, Catalog)
@@ -85,6 +94,7 @@ async def back_to_show_catalogs_list(query: CallbackQuery, state: FSMContext):
     await query.answer()
 
 
+@admin_create_catalog.callback_query(CreateProduct.confirming_catalog_name)
 async def confirm_catalog_name(query: CallbackQuery, state: FSMContext):
     if query.data == "confirm_add_catalog":
 
@@ -107,6 +117,7 @@ async def confirm_catalog_name(query: CallbackQuery, state: FSMContext):
         query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
 
 
+@admin_create_catalog.callback_query(CreateProduct.choosing_catalog)
 async def show_categories_list(query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
 
@@ -121,11 +132,3 @@ async def show_categories_list(query: CallbackQuery, state: FSMContext):
         reply_markup=kb
     )
     await query.answer()
-
-
-def register_product_create_catalog(dp: Dispatcher):
-    dp.message.register(show_catalogs_list, Command("create_product"), IsAdmin())
-    dp.callback_query.register(choose_catalog_to_create, CreateProduct.choosing_catalog, IsAdmin())
-    dp.message.register(enter_new_catalog_name, CreateProduct.entering_catalog_name, IsAdmin())
-    dp.callback_query.register(back_to_show_catalogs_list, CreateProduct.entering_catalog_name, IsAdmin())
-    dp.callback_query.register(confirm_catalog_name, CreateProduct.confirming_catalog_name, IsAdmin())

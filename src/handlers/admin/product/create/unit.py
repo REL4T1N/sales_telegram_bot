@@ -1,4 +1,4 @@
-from aiogram import Dispatcher
+from aiogram import Router
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
@@ -16,6 +16,12 @@ from keyboards.admin.base import create_back_button, confirming_keyboard
 from handlers.admin.product.create.category import show_units_list
 
 
+admin_create_unit = Router()
+admin_create_unit.message.filter(IsAdmin())
+admin_create_unit.callback_query.filter(IsAdmin())
+
+
+@admin_create_unit.callback_query(CreateProduct.choosing_unit)
 async def choose_unit(query: CallbackQuery, state: FSMContext):
     if query.data == "back_to_enter_size":
         data = await state.get_data()
@@ -55,6 +61,7 @@ async def choose_unit(query: CallbackQuery, state: FSMContext):
         await query.answer()
         
 
+@admin_create_unit.callback_query(CreateProduct.entering_new_unit)
 async def back_to_units_list(query: CallbackQuery, state: FSMContext):
     if query.data == "back_to_units_list":
 
@@ -64,7 +71,7 @@ async def back_to_units_list(query: CallbackQuery, state: FSMContext):
         await state.update_data(catalog_id=data["catalog_id"])
         await state.update_data(category_id=data["category_id"])
         await state.update_data(size=data["size"])
-        
+
         await show_units_list(query, state)
         return
 
@@ -72,6 +79,7 @@ async def back_to_units_list(query: CallbackQuery, state: FSMContext):
         query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
 
 
+@admin_create_unit.message(CreateProduct.entering_new_unit)
 async def enter_new_unit(mes: Message, state: FSMContext):
     unit = mes.text
     await state.update_data(unit=unit)
@@ -85,6 +93,7 @@ async def enter_new_unit(mes: Message, state: FSMContext):
     )
 
 
+@admin_create_unit.callback_query(CreateProduct.confirming_new_unit)
 async def confirm_unit(query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
 
@@ -115,10 +124,3 @@ async def confirm_unit(query: CallbackQuery, state: FSMContext):
 
     else:
         query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
-
-
-def register_product_create_unit(dp: Dispatcher):
-    dp.callback_query.register(choose_unit, CreateProduct.choosing_unit, IsAdmin())
-    dp.callback_query.register(back_to_units_list, CreateProduct.entering_new_unit, IsAdmin())
-    dp.message.register(enter_new_unit, CreateProduct.entering_new_unit, IsAdmin())
-    dp.callback_query.register(confirm_unit, CreateProduct.confirming_new_unit, IsAdmin())

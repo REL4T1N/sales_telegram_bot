@@ -1,4 +1,4 @@
-from aiogram import Dispatcher
+from aiogram import Router
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
@@ -20,6 +20,11 @@ from keyboards.admin.base import create_keyboard, create_back_button, confirming
 from handlers.admin.product.create.catalog import show_categories_list
 
 
+admin_create_product = Router()
+admin_create_product.message.filter(IsAdmin())
+admin_create_product.callback_query.filter(IsAdmin())
+
+
 async def kb_units_list():
     async for db in get_db():
         units = await get_all(db, Unit)
@@ -29,6 +34,7 @@ async def kb_units_list():
     return kb
 
 
+@admin_create_product.message(CreateProduct.entering_size)
 async def enter_size(mes: Message, state: FSMContext):
     try:
         size = float(mes.text.replace(",", "."))
@@ -50,6 +56,7 @@ async def enter_size(mes: Message, state: FSMContext):
     )
 
 
+@admin_create_product.callback_query(CreateProduct.entering_size)
 async def back_to_categories_list_on_size(query: CallbackQuery, state: FSMContext):
     if query.data == "back_to_categories_list":
 
@@ -63,6 +70,7 @@ async def back_to_categories_list_on_size(query: CallbackQuery, state: FSMContex
         query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
 
 
+@admin_create_product.message(CreateProduct.entering_count)
 async def enter_count(mes: Message, state: FSMContext):
     try:
         count = float(mes.text.replace(",", "."))
@@ -83,6 +91,7 @@ async def enter_count(mes: Message, state: FSMContext):
     )
 
 
+@admin_create_product.callback_query(CreateProduct.entering_count)
 async def back_to_units_on_count(query: CallbackQuery, state: FSMContext):
     if query.data == "back_to_units_list":
         data = await state.get_data()
@@ -105,6 +114,7 @@ async def back_to_units_on_count(query: CallbackQuery, state: FSMContext):
         query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
 
 
+@admin_create_product.message(CreateProduct.entering_price)
 async def enter_price(mes: Message, state: FSMContext):
     try:
         price = float(mes.text.replace(",", "."))
@@ -151,6 +161,7 @@ async def enter_price(mes: Message, state: FSMContext):
     ) 
 
 
+@admin_create_product.callback_query(CreateProduct.entering_price)
 async def back_to_count_on_price(query: CallbackQuery, state: FSMContext):
     if query.data == "back_to_enter_count":
         data = await state.get_data()
@@ -174,6 +185,7 @@ async def back_to_count_on_price(query: CallbackQuery, state: FSMContext):
         query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
 
 
+@admin_create_product.callback_query(CreateProduct.confirming)
 async def confirm_add_product(query: CallbackQuery, state: FSMContext):
     if query.data == "add_product":
         data = await state.get_data()
@@ -205,15 +217,3 @@ async def confirm_add_product(query: CallbackQuery, state: FSMContext):
 
     else:
         query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
-        
-
-
-
-def register_product_create_enter_params(dp: Dispatcher):
-    dp.message.register(enter_size, CreateProduct.entering_size, IsAdmin())
-    dp.callback_query.register(back_to_categories_list_on_size, CreateProduct.entering_size, IsAdmin())
-    dp.message.register(enter_count, CreateProduct.entering_count, IsAdmin())
-    dp.callback_query.register(back_to_units_on_count, CreateProduct.entering_count, IsAdmin())
-    dp.message.register(enter_price, CreateProduct.entering_price, IsAdmin())
-    dp.callback_query.register(back_to_count_on_price, CreateProduct.entering_price, IsAdmin())
-    dp.callback_query.register(confirm_add_product, CreateProduct.confirming, IsAdmin())

@@ -1,4 +1,4 @@
-from aiogram import Dispatcher
+from aiogram import Router
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
@@ -16,6 +16,12 @@ from keyboards.admin.base import create_keyboard, create_back_button, confirming
 from handlers.admin.product.create.catalog import show_categories_list, back_to_show_catalogs_list
 
 
+admin_create_category = Router()
+admin_create_category.message.filter(IsAdmin())
+admin_create_category.callback_query.filter(IsAdmin())
+
+
+@admin_create_category.callback_query(CreateProduct.choosing_category)
 async def choose_category(query: CallbackQuery, state: FSMContext):
     if query.data == "back_to_show_catalogs_list":
         await back_to_show_catalogs_list(query, state)
@@ -46,6 +52,7 @@ async def choose_category(query: CallbackQuery, state: FSMContext):
         await query.answer()
 
 
+@admin_create_category.callback_query(CreateProduct.entering_category_name)
 async def back_to_categories_list(query: CallbackQuery, state: FSMContext):
     if query.data == "back_to_categories_list":
 
@@ -59,6 +66,7 @@ async def back_to_categories_list(query: CallbackQuery, state: FSMContext):
         query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
 
 
+@admin_create_category.message(CreateProduct.entering_category_name)
 async def enter_new_category_name(mes: Message, state: FSMContext):
     category_name = mes.text
     data = await state.get_data()
@@ -76,6 +84,7 @@ async def enter_new_category_name(mes: Message, state: FSMContext):
     )
 
 
+@admin_create_category.callback_query(CreateProduct.confirming_category_name)
 async def confirm_category_name(query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
 
@@ -99,7 +108,7 @@ async def confirm_category_name(query: CallbackQuery, state: FSMContext):
     else:
         query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
 
-
+@admin_create_category.callback_query(CreateProduct.entering_size)
 async def show_units_list(query: CallbackQuery, state: FSMContext):
     async for db in get_db():
         units = await get_all(db, Unit)
@@ -112,10 +121,3 @@ async def show_units_list(query: CallbackQuery, state: FSMContext):
         reply_markup=kb
     )
     await query.answer()
-
-
-def register_product_create_category(dp: Dispatcher):
-    dp.callback_query.register(choose_category, CreateProduct.choosing_category, IsAdmin())
-    dp.callback_query.register(back_to_categories_list, CreateProduct.entering_category_name, IsAdmin())
-    dp.message.register(enter_new_category_name, CreateProduct.entering_category_name, IsAdmin())
-    dp.callback_query.register(confirm_category_name, CreateProduct.confirming_category_name, IsAdmin())
