@@ -1,5 +1,4 @@
-from aiogram import Dispatcher, F
-from aiogram.filters import Command
+from aiogram import Dispatcher
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
@@ -10,8 +9,6 @@ from states.admin.product.create_product import CreateProduct
 
 from services.product.base import get_all, create_object
 
-from services.product.create import get_categories_by_catalog
-
 from utils.formatting_float_nums import pretty_num
 
 from schemas.product import ProductCreate
@@ -20,7 +17,7 @@ from handlers.admin.base import IsAdmin
 
 from keyboards.admin.base import create_keyboard, create_back_button, confirming_keyboard
 
-from handlers.admin.product.create.catalog import show_categories_list, back_to_show_catalogs_list
+from handlers.admin.product.create.catalog import show_categories_list
 
 
 async def kb_units_list():
@@ -91,7 +88,6 @@ async def back_to_units_on_count(query: CallbackQuery, state: FSMContext):
         data = await state.get_data()
         await state.clear()
         
-        
         await state.update_data(catalog_id=data["catalog_id"])
         await state.update_data(category_id=data["category_id"])
         await state.update_data(size=data["size"])
@@ -155,60 +151,10 @@ async def enter_price(mes: Message, state: FSMContext):
     ) 
 
 
-# на случай добавления описания и фотографии
-'''
-async def enter_price(mes: Message, state: FSMContext):
-    try:
-        price = float(mes.text.replace(",", "."))
-        if price <= 0:
-            raise ValueError
-        
-    except Exception:
-        await mes.answer(text="Пожалуйства, введите неотрицательное число, <b><i>например,</i></b> <code>799.99</code>")
-        return 
-    
-    kb = await create_back_button("back_to_enter_price")
-    
-    await state.update_data(price=price)
-    data = await state.get_data()
-
-    kb = await confirming_keyboard("✅ Да", "add_desc", "❌ Нет", "not_add_desc")
-
-    async for db in get_db():
-
-        catalog = await db.get(Catalog, data["catalog_id"])
-        category = await db.get(Category, data["category_id"])
-        unit = await db.get(Unit, data["unit_id"])
-
-        catalog_name = catalog.name if catalog else ""
-        category_name = category.name if category else ""
-        unit_name = unit.name if unit else ""
-
-    text = (
-            f"<b>Информация по продукту:</b>\n"
-            f"<b>Каталог:</b> {catalog_name}\n"
-            f"<b>Категория:</b> {category_name}\n"
-            f"<b>Размер единицы продукции:</b> <i>{pretty_num(data['size'])}</i>\n"
-            f"<b>Единица измерения:</b> {unit_name}\n"
-            f"<b>Количество продукции:</b> <i>{pretty_num(data['count'])}</i> шт.\n"
-            f"<b>Цена:</b> <i>{pretty_num(price)}</i>₽\n"
-            f"<b>------</b>\n"
-            f"<b>Добавить описание?</b>"
-    )
-
-    await state.set_state(CreateProduct.adding_desc)
-    await mes.answer(
-        text=text,
-        reply_markup=kb
-    )    
-'''
-
-
 async def back_to_count_on_price(query: CallbackQuery, state: FSMContext):
     if query.data == "back_to_enter_count":
         data = await state.get_data()
         await state.clear()
-        
         
         await state.update_data(catalog_id=data["catalog_id"])
         await state.update_data(category_id=data["category_id"])

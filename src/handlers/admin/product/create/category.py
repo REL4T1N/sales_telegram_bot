@@ -1,20 +1,13 @@
-from aiogram import Dispatcher, F
-from aiogram.filters import Command
+from aiogram import Dispatcher
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
 from database.database import get_db
-from database.models import Catalog, Category, Unit, Product
+from database.models import Catalog, Category, Unit
 
 from states.admin.product.create_product import CreateProduct
 
 from services.product.base import get_all, create_object
-
-from services.product.create import get_categories_by_catalog
-
-from utils.formatting_float_nums import pretty_num
-
-from schemas.product import ProductCreate
 
 from handlers.admin.base import IsAdmin
 
@@ -51,7 +44,6 @@ async def choose_category(query: CallbackQuery, state: FSMContext):
             reply_markup=kb
         )
         await query.answer()
-        # нажата кнопка с id категории
 
 
 async def back_to_categories_list(query: CallbackQuery, state: FSMContext):

@@ -1,27 +1,19 @@
-from aiogram import Dispatcher, F
-from aiogram.filters import Command
+from aiogram import Dispatcher
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
 from database.database import get_db
-from database.models import Catalog, Category, Unit, Product
+from database.models import Unit
 
 from states.admin.product.create_product import CreateProduct
 
-from services.product.base import get_all, create_object
-
-from services.product.create import get_categories_by_catalog
-
-from utils.formatting_float_nums import pretty_num
-
-from schemas.product import ProductCreate
+from services.product.base import create_object
 
 from handlers.admin.base import IsAdmin
 
-from keyboards.admin.base import create_keyboard, create_back_button, confirming_keyboard
+from keyboards.admin.base import create_back_button, confirming_keyboard
 
-from handlers.admin.product.create.catalog import show_categories_list, back_to_show_catalogs_list
-from handlers.admin.product.create.category import show_units_list, show_categories_list
+from handlers.admin.product.create.category import show_units_list
 
 
 async def choose_unit(query: CallbackQuery, state: FSMContext):
@@ -61,7 +53,6 @@ async def choose_unit(query: CallbackQuery, state: FSMContext):
             reply_markup=kb
         )
         await query.answer()
-        # Нажата кнопка с id ЕИ
         
 
 async def back_to_units_list(query: CallbackQuery, state: FSMContext):
@@ -69,9 +60,11 @@ async def back_to_units_list(query: CallbackQuery, state: FSMContext):
 
         data = await state.get_data()
         await state.clear()
+
         await state.update_data(catalog_id=data["catalog_id"])
         await state.update_data(category_id=data["category_id"])
         await state.update_data(size=data["size"])
+        
         await show_units_list(query, state)
         return
 
@@ -101,18 +94,22 @@ async def confirm_unit(query: CallbackQuery, state: FSMContext):
 
         await query.answer(text="✅ Категория успешно добавлена")
         await state.clear()
+        
         await state.update_data(catalog_id=data["catalog_id"])
         await state.update_data(category_id=data["category_id"])
         await state.update_data(size=data["size"])
+
         await show_units_list(query, state)
         return
 
     elif query.data == "cancel_add_unit":
         await query.answer(text="❌ Добавление категории отменено")
         await state.clear()
+
         await state.update_data(catalog_id=data["catalog_id"])
         await state.update_data(category_id=data["category_id"])
         await state.update_data(size=data["size"])
+
         await show_units_list(query, state)
         return
 
