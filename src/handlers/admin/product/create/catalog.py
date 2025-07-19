@@ -8,9 +8,9 @@ from database.models import Catalog
 
 from states.admin.product.create_product import CreateProduct
 
-from services.product.base import get_all, create_object
+from services.product.base import get_all, get_categories_by_catalog
 
-from services.product.create import get_categories_by_catalog
+from services.product.create import create_object
 
 from handlers.admin.base import IsAdmin
 

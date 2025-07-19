@@ -7,7 +7,8 @@ from database.models import Catalog, Category, Unit
 
 from states.admin.product.create_product import CreateProduct
 
-from services.product.base import get_all, create_object
+from services.product.base import get_all
+from services.product.create import create_object
 
 from handlers.admin.base import IsAdmin
 

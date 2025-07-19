@@ -7,7 +7,7 @@ from database.models import Unit
 
 from states.admin.product.create_product import CreateProduct
 
-from services.product.base import create_object
+from services.product.create import create_object
 
 from handlers.admin.base import IsAdmin
 
