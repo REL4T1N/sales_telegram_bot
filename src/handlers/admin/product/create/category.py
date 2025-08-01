@@ -114,7 +114,11 @@ async def show_units_list(query: CallbackQuery, state: FSMContext):
     async for db in get_db():
         units = await get_all(db, Unit)
 
-    kb = await create_keyboard(units, "Добавить", "add_new_unit", "back_to_show_categories_list")
+    '''
+    ОШИБКА, ПРИ НАЖАТИИ КНОПКИ ОТПРАВЮЩЕЙ back_to_enter_size ОТОБРАЖАЕТСЯ МЕНЮ ВЫБОРА ЕДИНИЦЫ ИЗМЕРЕНИЯ А НЕ СПИСКА КАТЕГОРИЙ!!!!!!!
+    нУЖНО ПОМЕНЯТЬ ОТПРАВЛЯЕМЫЙ QUERY И ИЗМЕНИТЬ ОТОБРАЖАЕМУЮ КЛАВИАТУРУ В UNIT.PY ОБРАБАТЫВАЮЩЕМ CreateProduct.choosing_unit
+    '''
+    kb = await create_keyboard(units, "Добавить", "add_new_unit", "back_to_enter_size")
 
     await state.set_state(CreateProduct.choosing_unit)
     await query.message.edit_text(
