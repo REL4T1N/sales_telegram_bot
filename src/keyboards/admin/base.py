@@ -1,15 +1,22 @@
+from typing import Optional
+
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-async def create_keyboard(objects, add_text, add_callback, add_back_callback):
+async def create_keyboard(objects, add_text: Optional[str] = None, add_callback: Optional[str] = None, add_back_callback: Optional[str] = None):
     buttons = []
     i = 0
     while i < len(objects):
         # Если это последний элемент и всего объектов нечетное количество
         if i == len(objects) - 1 and len(objects) % 2 == 1:
-            row = [
-                InlineKeyboardButton(text=objects[i].name, callback_data=str(objects[i].id)),
-                InlineKeyboardButton(text=add_text, callback_data=add_callback)
-            ]
+            if add_text is not None and add_callback is not None:
+                row = [
+                    InlineKeyboardButton(text=objects[i].name, callback_data=str(objects[i].id)),
+                    InlineKeyboardButton(text=add_text, callback_data=add_callback)
+                ]
+            else:
+                row = [
+                    InlineKeyboardButton(text=objects[i].name, callback_data=str(objects[i].id)),
+                ]
             buttons.append(row)
             break
         else:
@@ -20,7 +27,7 @@ async def create_keyboard(objects, add_text, add_callback, add_back_callback):
             buttons.append(row)
             i += 2
     # Если объектов чётное количество, кнопку "Добавить" на отдельную строку
-    if len(objects) % 2 == 0:
+    if len(objects) % 2 == 0 and add_text is not None and add_callback is not None:
         buttons.append([
             InlineKeyboardButton(text=add_text, callback_data=add_callback)
         ])
