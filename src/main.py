@@ -9,6 +9,7 @@ from handlers.admin.product.create.enter_params import admin_create_product
 from handlers.admin.product.create.unit import admin_create_unit
 
 from handlers.admin.product.update.catalog import admin_update_catalog
+from handlers.admin.product.update.category import admin_update_category
 
 
 async def main():
@@ -18,6 +19,7 @@ async def main():
     dp.include_router(admin_create_product)
 
     dp.include_router(admin_update_catalog)
+    dp.include_router(admin_update_category)
     await dp.start_polling(bot)
 
 
