@@ -63,7 +63,7 @@ async def choose_category_action_for_update(query: CallbackQuery, state: FSMCont
         await display_category_list_for_update(
             query,
             state,
-            new_state=UpdateProduct.choosing_category_for_size,
+            new_state=UpdateProduct.choosing_category_for_blocks,
             text="Выберите категорию:",
         )
 
