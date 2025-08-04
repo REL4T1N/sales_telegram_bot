@@ -14,6 +14,7 @@ def pretty_num(val):
     except Exception:
         return str(val)
     
+    
 def pretty_edit(old, new, suffix=""):
     old_str = pretty_num(old)
     if new is not None:
@@ -21,3 +22,8 @@ def pretty_edit(old, new, suffix=""):
         return f"<i>{old_str}</i>{suffix} → <i>{new_str}</i>{suffix}"
     else:
         return f"<i>{old_str}</i>{suffix}"
+    
+
+def pad(text, width):
+    """Заполняет пробелами до нужной ширины (слева и справа — чтобы центрировать)"""
+    return f"{str(text):^{width}}"
