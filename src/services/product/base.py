@@ -24,12 +24,11 @@ async def get_categories_by_catalog(db: AsyncSession, catalog_id: int):
 
 async def get_product_display_data(
         db: AsyncSession,
-        catalog_id: int, 
         category_id: int, 
         unit_id: int
 ) -> dict:
-    catalog = await db.get(Catalog, catalog_id)
     category = await db.get(Category, category_id)
+    catalog = await db.get(Catalog, category.catalog_id) if category else None
     unit = await db.get(Unit, unit_id)
 
     return {
