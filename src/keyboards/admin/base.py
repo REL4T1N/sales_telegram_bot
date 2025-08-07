@@ -2,6 +2,7 @@ from typing import Optional
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+
 async def create_keyboard(objects, add_text: Optional[str] = None, add_callback: Optional[str] = None, add_back_callback: Optional[str] = None):
     buttons = []
     i = 0

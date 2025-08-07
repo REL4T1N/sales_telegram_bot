@@ -1,6 +1,8 @@
 from aiogram.fsm.state import State, StatesGroup
 
+
 class UpdateProduct(StatesGroup):
+
     choosing_catalog_action = State()
     choosing_catalog_for_category = State()
     choosing_catalog_rename = State()

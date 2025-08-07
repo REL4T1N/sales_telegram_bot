@@ -10,10 +10,9 @@ from states.admin.product.create_product import CreateProduct
 from services.product.create import create_object
 
 from handlers.admin.base import IsAdmin
+from handlers.admin.product.create.category import show_units_list
 
 from keyboards.admin.base import create_back_button, confirming_keyboard
-
-from handlers.admin.product.create.category import show_units_list
 
 
 admin_create_unit = Router()

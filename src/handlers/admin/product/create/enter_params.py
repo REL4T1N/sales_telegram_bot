@@ -15,10 +15,9 @@ from utils.formatting_float_nums import pretty_num
 from schemas.product import ProductCreate
 
 from handlers.admin.base import IsAdmin
+from handlers.admin.product.create.catalog import show_categories_list
 
 from keyboards.admin.base import create_keyboard, create_back_button, confirming_keyboard
-
-from handlers.admin.product.create.catalog import show_categories_list
 
 
 admin_create_product = Router()

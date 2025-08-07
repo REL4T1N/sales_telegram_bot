@@ -8,13 +8,13 @@ from database.models import Category
 from states.admin.product.update_product import UpdateProduct
 
 from services.product.update.base import update_object
+from services.product.update.catalog import display_catalog_action_menu_for_update, display_catalogs_list_for_update
+from services.product.update.category import display_category_action_menu_for_update, display_category_list_for_update
 
 from handlers.admin.base import IsAdmin
 
 from keyboards.admin.base import create_back_button, confirming_keyboard
 
-from services.product.update.catalog import display_catalog_action_menu_for_update, display_catalogs_list_for_update
-from services.product.update.category import display_category_action_menu_for_update, display_category_list_for_update
 
 admin_update_category = Router()
 

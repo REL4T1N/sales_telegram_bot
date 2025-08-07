@@ -15,11 +15,9 @@ from states.admin.product.update_product import UpdateProduct
 from keyboards.admin.product.update_product import generate_product_edit_keyboard
 
 from utils.formatting_float_nums import pad, pretty_num
-
-from services.product.update.base import update_object
-
 from utils.product_utils import generate_product_info_text
 
+from services.product.update.base import update_object
 
 
 async def generate_products_table(

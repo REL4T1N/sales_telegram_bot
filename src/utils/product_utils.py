@@ -8,7 +8,6 @@ from services.product.base import get_product_display_info
 from utils.formatting_float_nums import pretty_edit
 
 
-
 async def generate_product_info_text(db: AsyncSession, product: Product, data: dict = None) -> tuple[str, bool]:
     """
     Генерирует текст с информацией о продукте, учитывая возможные новые значения.

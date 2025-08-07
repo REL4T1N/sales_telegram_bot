@@ -1,6 +1,4 @@
-import asyncio
-
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
@@ -11,12 +9,12 @@ from database.models import Catalog
 from states.admin.product.update_product import UpdateProduct
 
 from services.product.update.base import update_object
+from services.product.update.catalog import display_catalog_action_menu_for_update, display_catalogs_list_for_update
 
 from handlers.admin.base import IsAdmin
 
 from keyboards.admin.base import create_back_button, confirming_keyboard
 
-from services.product.update.catalog import display_catalog_action_menu_for_update, display_catalogs_list_for_update
 
 admin_update_catalog = Router()
 
