@@ -20,6 +20,7 @@ async def generate_products_table(
     products: List[Product],
     catalog_name: str,
     category_name: str,
+    start_text: Optional[str] = None, 
     buttons_per_row: int = 2
 ) -> tuple[str, InlineKeyboardMarkup]:
     """
@@ -38,13 +39,20 @@ async def generate_products_table(
     col_widths = [3, 10, 12, 10]
     header = f"{pad('№', col_widths[0])}|{pad('Размер', col_widths[1])}|{pad('Кол-во', col_widths[2])}|{pad('Цена', col_widths[3])}"
     sep = '-' * len(header)
-    lines = [
+    lines = []
+    
+    # Добавляем стартовый текст, если он передан
+    if start_text is not None:
+        lines.append(start_text)
+        lines.append("")  # Добавляем пустую строку для переноса
+
+    lines.extend([
         f"Каталог: {catalog_name}",
         f"Категория: {category_name}",
         "```",
         header,
         sep,
-    ]
+    ])
 
     buttons = []
     temp_row = []
@@ -72,7 +80,7 @@ async def generate_products_table(
     return "\n".join(lines), kb
 
 
-async def display_products_list(query: CallbackQuery, state: FSMContext):
+async def display_products_list(query: CallbackQuery, state: FSMContext, start_text: Optional[str] = None):
     data = await state.get_data()
     category_id = data.get("category_id")
     if not category_id:
@@ -99,6 +107,7 @@ async def display_products_list(query: CallbackQuery, state: FSMContext):
             products=products,
             catalog_name=catalog_name,
             category_name=category_name,
+            start_text=start_text,
             buttons_per_row=3
         )
 

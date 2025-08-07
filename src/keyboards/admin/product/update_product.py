@@ -41,22 +41,24 @@ async def generate_product_edit_keyboard(show_confirm_cancel: bool = False) -> I
     """
     buttons = [
         [
-            InlineKeyboardButton(text="Размер", callback_data="edit_param:size"),
-            InlineKeyboardButton(text="Единица измерения", callback_data="edit_param:unit")
+            InlineKeyboardButton(text="Размер", callback_data="update_param:size"),
+            InlineKeyboardButton(text="Единица измерения", callback_data="update_param:unit")
         ],
         [
-            InlineKeyboardButton(text="Количество продукции", callback_data="edit_param:count"),
-            InlineKeyboardButton(text="Цена", callback_data="edit_param:price")
-        ],
-        [
-            InlineKeyboardButton(text="Назад", callback_data="back_to_choose_product_to_update")
+            InlineKeyboardButton(text="Количество продукции", callback_data="update_param:count"),
+            InlineKeyboardButton(text="Цена", callback_data="update_param:price")
         ]
     ]
+
     
     if show_confirm_cancel:
-        buttons.insert(-1, [
-            InlineKeyboardButton(text="Подтвердить изменения", callback_data="confirm_param_edit"),
-            InlineKeyboardButton(text="Отменить изменения", callback_data="cancel_param_edit")
+        buttons.append([
+            InlineKeyboardButton(text="Подтвердить изменения", callback_data="confirm_param_update"),
+            InlineKeyboardButton(text="Отменить изменения", callback_data="cancel_param_update")
+        ])
+    else:
+        buttons.append([
+            InlineKeyboardButton(text="Назад", callback_data="back_to_choose_product_to_update")
         ])
     
     return InlineKeyboardMarkup(inline_keyboard=buttons)
