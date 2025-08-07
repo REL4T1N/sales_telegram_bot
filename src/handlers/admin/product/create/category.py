@@ -109,7 +109,7 @@ async def confirm_category_name(query: CallbackQuery, state: FSMContext):
     else:
         query.answer(text="Упс... Что-то пошло не так.\nПерезапустите приложение или свяжитесь с @REL4T1NCH1k")
 
-@admin_create_category.callback_query(CreateProduct.entering_size)
+# @admin_create_category.callback_query(CreateProduct.entering_size)
 async def show_units_list(query: CallbackQuery, state: FSMContext):
     async for db in get_db():
         units = await get_all(db, Unit)
