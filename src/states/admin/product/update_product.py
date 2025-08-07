@@ -13,5 +13,12 @@ class UpdateProduct(StatesGroup):
     entering_category_rename = State()
     confirming_category_rename = State()
 
-    choose_product_parametr_to_edit = State()
-    
+    # С v1 версии
+    choosing_product = State()
+    choosing_product_parametr = State()
+    entering_new_size = State()
+    choosing_new_unit = State()
+    entering_new_count = State()
+    entering_new_price = State()
+    confirming_product_edit = State()
+    choosing_param_edit_action = State()
