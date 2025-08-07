@@ -21,9 +21,42 @@ category_action_buttons = [
         InlineKeyboardButton(text="Не изменять название", callback_data="cancel_update_category_name"),
     ],
     [
-        InlineKeyboardButton(text="Назад(РАБОТАЕТ)", callback_data="back_to_choose_catalog_for_category")
+        InlineKeyboardButton(text="Назад", callback_data="back_to_choose_catalog_for_category")
     ]
 ]
 
 catalog_action_kb = InlineKeyboardMarkup(inline_keyboard=catalog_action_buttons)
 category_action_kb = InlineKeyboardMarkup(inline_keyboard=category_action_buttons)
+
+
+async def generate_product_edit_keyboard(show_confirm_cancel: bool = False) -> InlineKeyboardMarkup:
+    """
+    Генерирует клавиатуру для редактирования параметров продукта.
+    
+    Args:
+        show_confirm_cancel: Если True, добавляет кнопки "Подтвердить" и "Отменить"
+    
+    Returns:
+        InlineKeyboardMarkup с кнопками
+    """
+    buttons = [
+        [
+            InlineKeyboardButton(text="Размер", callback_data="edit_param:size"),
+            InlineKeyboardButton(text="Единица измерения", callback_data="edit_param:unit")
+        ],
+        [
+            InlineKeyboardButton(text="Количество продукции", callback_data="edit_param:count"),
+            InlineKeyboardButton(text="Цена", callback_data="edit_param:price")
+        ],
+        [
+            InlineKeyboardButton(text="Назад", callback_data="back_to_choose_product_to_update")
+        ]
+    ]
+    
+    if show_confirm_cancel:
+        buttons.insert(-1, [
+            InlineKeyboardButton(text="Подтвердить изменения", callback_data="confirm_param_edit"),
+            InlineKeyboardButton(text="Отменить изменения", callback_data="cancel_param_edit")
+        ])
+    
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
