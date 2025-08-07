@@ -1,18 +1,25 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from typing import List, Optional
+
+from aiogram.types import CallbackQuery, Message
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.fsm.context import FSMContext
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from database.database import get_db
 from database.models import Product, Unit, Catalog, Category
 
-from utils.formatting_float_nums import pad, pretty_num, pretty_edit
-
-from aiogram.types import CallbackQuery
-from aiogram.fsm.context import FSMContext
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from database.models import Product, Category, Catalog
-from database.database import get_db
-from services.product.base import get_product_display_info
 from states.admin.product.update_product import UpdateProduct
+
+from keyboards.admin.product.update_product import generate_product_edit_keyboard
+
+from utils.formatting_float_nums import pad, pretty_num
+
+from services.product.update.base import update_object
+
+from utils.product_utils import generate_product_info_text
+
 
 
 async def generate_products_table(
@@ -118,3 +125,56 @@ async def display_products_list(query: CallbackQuery, state: FSMContext, start_t
             parse_mode="MarkdownV2"
         )
         await query.answer()
+
+
+async def handle_param_input(param_type: str, mes: Message, state: FSMContext):
+    """Обрабатывает ввод параметров продукта (size, count, price)."""
+    param_map = {
+        "size": {"state_key": "new_size", "parse_func": float, "error_msg": "Пожалуйста, введите неотрицательное число, например, 1.5"},
+        "count": {"state_key": "new_count", "parse_func": lambda x: int(float(x)), "error_msg": "Пожалуйста, введите целое неотрицательное число, например, 10"},
+        "price": {"state_key": "new_price", "parse_func": float, "error_msg": "Пожалуйста, введите неотрицательное число, например, 799.99"}
+    }
+    
+    try:
+        value = mes.text.replace(",", ".")
+        parsed_value = param_map[param_type]["parse_func"](value)
+        if parsed_value < 0 or (param_type == "count" and parsed_value != int(parsed_value)):
+            raise ValueError
+    except Exception:
+        await mes.answer(text=param_map[param_type]["error_msg"])
+        return
+    
+    await state.update_data(**{param_map[param_type]["state_key"]: parsed_value})
+    data = await state.get_data()
+    
+    async for db in get_db():
+        product = await db.get(Product, data["product_id"])
+        text, flag = await generate_product_info_text(db, product, data)
+    
+    kb = await generate_product_edit_keyboard(flag)
+    await state.set_state(UpdateProduct.choosing_product_parametr)
+    await mes.answer(text=text, reply_markup=kb)
+
+
+async def confirm_changes(query: CallbackQuery, state: FSMContext):
+    """Подтверждает изменения параметров продукта."""
+    data = await state.get_data()
+    fields_to_update = {param: data[f"new_{param}"] for param in ("size", "count", "price", "unit_id") if f"new_{param}" in data and data[f"new_{param}"] is not None}
+    
+    await state.clear()
+    await state.update_data(catalog_id=data["catalog_id"], category_id=data["category_id"])
+    
+    if fields_to_update:
+        async for db in get_db():
+            await update_object(db, Product, obj_id=data["product_id"], **fields_to_update)
+        await display_products_list(query, state, start_text="✅ Товар успешно обновлён")
+    else:
+        await display_products_list(query, state, start_text="Нет новых изменений для сохранения")
+
+
+async def cancel_changes(query: CallbackQuery, state: FSMContext):
+    """Отменяет изменения параметров продукта."""
+    data = await state.get_data()
+    await state.clear()
+    await state.update_data(catalog_id=data["catalog_id"], category_id=data["category_id"])
+    await display_products_list(query, state, start_text="Изменения отменены")
