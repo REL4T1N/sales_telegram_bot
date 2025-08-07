@@ -5,6 +5,16 @@ from database.models import Product, Unit, Catalog, Category
 
 from utils.formatting_float_nums import pad, pretty_num, pretty_edit
 
+from aiogram.types import CallbackQuery
+from aiogram.fsm.context import FSMContext
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from database.models import Product, Category, Catalog
+from database.database import get_db
+from services.product.base import get_product_display_info
+from states.admin.product.update_product import UpdateProduct
+
+
 async def generate_products_table(
     db: AsyncSession,
     products: List[Product],
@@ -55,8 +65,47 @@ async def generate_products_table(
     if temp_row:
         buttons.append(temp_row)
 
-    buttons.append([InlineKeyboardButton(text="Назад(НЕ РАБОТАЕТ)", callback_data="back_to_choose_category")])
+    buttons.append([InlineKeyboardButton(text="Назад", callback_data="back_to_choose_category")])
     lines.append("```")
 
     kb = InlineKeyboardMarkup(inline_keyboard=buttons)
     return "\n".join(lines), kb
+
+
+async def display_products_list(query: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    category_id = data.get("category_id")
+    if not category_id:
+        await query.message.answer("Категория не выбрана.")
+        return
+
+    async for db in get_db():
+        products = await db.execute(
+            select(Product).where(Product.category_id == category_id)
+        )
+        products = products.scalars().all()
+
+        category = await db.get(Category, category_id)
+        catalog = await db.get(Catalog, category.catalog_id)
+        catalog_name = catalog.name if catalog else ""
+        category_name = category.name if category else ""
+
+        if not products:
+            await query.message.answer(f"Товары для {catalog_name} {category_name} не найдены")
+            return
+
+        text, kb = await generate_products_table(
+            db=db,
+            products=products,
+            catalog_name=catalog_name,
+            category_name=category_name,
+            buttons_per_row=3
+        )
+
+        await state.set_state(UpdateProduct.choosing_product)
+        await query.message.edit_text(
+            text=text,
+            reply_markup=kb,
+            parse_mode="MarkdownV2"
+        )
+        await query.answer()
