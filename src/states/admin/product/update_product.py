@@ -18,6 +18,8 @@ class UpdateProduct(StatesGroup):
     choosing_product_parametr = State()
     entering_new_size = State()
     choosing_new_unit = State()
+    entering_new_unit = State()
+    confirming_new_unit = State()
     entering_new_count = State()
     entering_new_price = State()
     confirming_product_edit = State()
